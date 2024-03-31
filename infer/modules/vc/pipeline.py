@@ -89,12 +89,12 @@ class Pipeline(object):
         f0_up_key,
         f0_method,
         filter_radius,
+        f0_min=50,
+        f0_max=1100,
         inp_f0=None,
     ):
         global input_audio_path2wav
         time_step = self.window / self.sr * 1000
-        f0_min = 50
-        f0_max = 1100
         f0_mel_min = 1127 * np.log(1 + f0_min / 700)
         f0_mel_max = 1127 * np.log(1 + f0_max / 700)
         if f0_method == "pm":
@@ -297,6 +297,8 @@ class Pipeline(object):
         rms_mix_rate,
         version,
         protect,
+        f0_min=50,
+        f0_max=1100,
         f0_file=None,
     ):
         if (
@@ -358,6 +360,8 @@ class Pipeline(object):
                 f0_up_key,
                 f0_method,
                 filter_radius,
+                f0_min,
+                f0_max,
                 inp_f0,
             )
             pitch = pitch[:p_len]
