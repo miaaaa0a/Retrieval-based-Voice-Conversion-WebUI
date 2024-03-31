@@ -28,3 +28,4 @@ ffmpeg.*
 ffprobe.*
 venv
 *.ui
+*.wav

@@ -5,15 +5,18 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtCore import Qt
 from ui.main import Ui_MainWindow
+from ui.inferClass import InferenceThread
 
 # rvc stuff
 from infer.modules.vc.modules import VC
 from configs.config import Config
 from dotenv import load_dotenv
+import soundfile as sf
 
 # misc stuff
 from itertools import chain
 import os
+import time
 
 # some setup
 config = Config()
@@ -34,9 +37,10 @@ class Window(QMainWindow, Ui_MainWindow):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setupUi(self)
+        self.thread = None
         
         # button triggers
-        # self.inferBtn.clicked.connect(self.inference)
+        self.inferBtn.clicked.connect(self.inference)
         self.inferAudioBtn.clicked.connect(self.openAudioFile)
 
         # sliders
@@ -53,7 +57,7 @@ class Window(QMainWindow, Ui_MainWindow):
         )
         self.indexRateSlider.valueChanged.connect(
             lambda: self.divide(
-                self.indexRatioVal, self.indexRateSlider.value()
+                self.indexRateVal, self.indexRateSlider.value()
             )
         )
 
@@ -104,6 +108,7 @@ class Window(QMainWindow, Ui_MainWindow):
         
         # get current model name
         self.setSid()
+        self.loadModel()
 
         # model change condition
         self.modelInfer.activated.connect(self.setSid)
@@ -134,6 +139,38 @@ class Window(QMainWindow, Ui_MainWindow):
             'Audio files (*.mp3 *.ogg *.flac *.wav)'
         )
         self.inferAudio.setText(audioDlg[0])
+    
+    def handle_inference_finished(self, info, audio):
+        filename = f"audios/audio-{self.sid.split('.')[0]}-{int(time.time())}.wav"
+        sf.write(filename, audio[1], audio[0])
+        print(info)
+        self.inferBtn.setEnabled(True)
+
+    def inference(self):
+        self.inferBtn.setEnabled(False)  # Disable the button while the inference is running
+
+        # Create a new thread and connect the finished signal
+        self.thread = InferenceThread(
+            vc,
+            self.inferAudio.text(),
+            self.transposeVal.text(),
+            self.f0Choice.currentText(),
+            self.indexInfer.currentText(),
+            float(self.indexRateVal.text()),
+            float(self.volRatioVal.text()),
+            float(self.protectVal.text()),
+            self.minFreqSpinBox.value(),
+            self.maxFreqSpinBox.value()
+        )
+        self.thread.finished.connect(self.handle_inference_finished)
+        self.thread.start()
+
+    def closeEvent(self, event):
+        if self.thread and self.thread.isRunning():
+            # Wait for the thread to finish before closing the application
+            self.thread.quit()
+            self.thread.wait()
+        super().closeEvent(event)
 
 
 if __name__ == "__main__":
