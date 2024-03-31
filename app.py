@@ -1,7 +1,7 @@
 # pyqt stuff
 import sys
 from PyQt6.QtWidgets import (
-    QApplication, QFileDialog, QMainWindow
+    QApplication, QFileDialog, QMainWindow, QLineEdit
 )
 from PyQt6.QtCore import Qt
 from ui.main import Ui_MainWindow
@@ -24,6 +24,10 @@ weight_root = os.getenv("weight_root")
 weight_uvr5_root = os.getenv("weight_uvr5_root")
 index_root = os.getenv("index_root")
 outside_index_root = os.getenv("outside_index_root")
+f0_min = 50
+f0_max = 1100
+protect = 33
+volRatio = 25
 
 class Window(QMainWindow, Ui_MainWindow):
     def __init__(self, parent=None):
@@ -33,6 +37,31 @@ class Window(QMainWindow, Ui_MainWindow):
         # button triggers
         # self.inferBtn.clicked.connect(self.inference)
         self.inferAudioBtn.clicked.connect(self.openAudioFile)
+
+        # sliders
+        # condition for sub 1 values
+        self.protectSlider.valueChanged.connect(
+            lambda: self.divide(
+                self.protectVal, self.protectSlider.value()
+            )
+        )
+        self.volRatioSlider.valueChanged.connect(
+            lambda: self.divide(
+                self.volRatioVal, self.volRatioSlider.value()
+            )
+        )
+
+        # set min/max freq
+        self.minFreqSlider.setValue(f0_min)
+        self.maxFreqSlider.setValue(f0_max)
+        self.minFreqSpinBox.setValue(f0_min)
+        self.maxFreqSpinBox.setValue(f0_max)
+
+        # set protect
+        self.protectSlider.setValue(protect)
+
+        # set vol ratio
+        self.volRatioSlider.setValue(volRatio)
 
         # combo menus
         # populate f0 choices
@@ -46,7 +75,10 @@ class Window(QMainWindow, Ui_MainWindow):
                 self.modelInfer.addItem(name)
         
         # index files
-        for root, _, files in chain(os.walk(index_root), os.walk(outside_index_root)):
+        for root, _, files in chain(
+            os.walk(index_root),
+            os.walk(outside_index_root)
+        ):
             for name in files:
                 if name.endswith(".index") and "trained" not in name:
                     self.indexInfer.addItem("%s\\%s" % (root, name))
@@ -61,6 +93,9 @@ class Window(QMainWindow, Ui_MainWindow):
     def setSid(self):
         self.sid = self.modelInfer.currentText()
     
+    def divide(self, item: QLineEdit, val):
+        item.setText(str(val / 100))
+    
     def loadModel(self):
         _, _, _, _, indexFile = vc.get_vc(self.sid, False, False)
         index = self.indexInfer.findText(indexFile['value'], Qt.MatchFlag.MatchFixedString)
@@ -68,7 +103,12 @@ class Window(QMainWindow, Ui_MainWindow):
             self.indexInfer.setCurrentIndex(index)
     
     def openAudioFile(self):
-        audioDlg = QFileDialog.getOpenFileName(self, 'Open file', '.', 'Audio files (*.mp3 *.ogg *.flac *.wav)')
+        audioDlg = QFileDialog.getOpenFileName(
+            self,
+            'Open file',
+            '.',
+            'Audio files (*.mp3 *.ogg *.flac *.wav)'
+        )
         self.inferAudio.setText(audioDlg[0])
 
 
