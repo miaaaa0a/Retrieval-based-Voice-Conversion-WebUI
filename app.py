@@ -74,9 +74,19 @@ class Window(QMainWindow, Ui_MainWindow):
 
         # combo menus
         # populate f0 choices
-        f0s = ["rmvpe", "mangio-crepe", "harvest", "fcpe", "hybrid"]
+        f0s = [
+            "rmvpe",
+            "mangio-crepe",
+            "harvest",
+            "fcpe",
+            "hybrid"
+        ]
         self.f0Choice.addItems(f0s)
         self.hybridF0Choices.addItems(f0s[:-1])
+
+        # hybrid f0 condition
+        self.f0Choice.activated.connect(self.toggleHybrid)
+        self.toggleHybrid() # trigger this once since f0 choice doesnt change on startup
 
         # models for inference
         for name in os.listdir(weight_root):
@@ -104,6 +114,11 @@ class Window(QMainWindow, Ui_MainWindow):
     
     def divide(self, item: QLineEdit, val):
         item.setText(str(val / 100))
+    
+    def toggleHybrid(self):
+        isHybrid = self.f0Choice.currentText() == "hybrid"
+        self.hybridF0Choices.setEnabled(isHybrid)
+        self.hybridF0Label.setEnabled(isHybrid)
     
     def loadModel(self):
         _, _, _, _, indexFile = vc.get_vc(self.sid, False, False)
