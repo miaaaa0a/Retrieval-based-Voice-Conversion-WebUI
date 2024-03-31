@@ -18,6 +18,8 @@ import torch.nn.functional as F
 import torchcrepe
 from scipy import signal
 
+from tqdm import tqdm
+
 now_dir = os.getcwd()
 sys.path.append(now_dir)
 
@@ -372,42 +374,21 @@ class Pipeline(object):
             pitchf = torch.tensor(pitchf, device=self.device).unsqueeze(0).float()
         t2 = ttime()
         times[1] += t2 - t1
-        for t in opt_ts:
-            t = t // self.window * self.window
-            if if_f0 == 1:
-                audio_opt.append(
-                    self.vc(
-                        model,
-                        net_g,
-                        sid,
-                        audio_pad[s : t + self.t_pad2 + self.window],
-                        pitch[:, s // self.window : (t + self.t_pad2) // self.window],
-                        pitchf[:, s // self.window : (t + self.t_pad2) // self.window],
-                        times,
-                        index,
-                        big_npy,
-                        index_rate,
-                        version,
-                        protect,
-                    )[self.t_pad_tgt : -self.t_pad_tgt]
-                )
-            else:
-                audio_opt.append(
-                    self.vc(
-                        model,
-                        net_g,
-                        sid,
-                        audio_pad[s : t + self.t_pad2 + self.window],
-                        None,
-                        None,
-                        times,
-                        index,
-                        big_npy,
-                        index_rate,
-                        version,
-                        protect,
-                    )[self.t_pad_tgt : -self.t_pad_tgt]
-                )
+
+        # from https://github.com/alexlnkp/Mangio-RVC-Tweaks/commit/1bbc49b3cde2304e42e8df26fc96d717d3216853
+        with tqdm(total=len(opt_ts), desc="Processing", unit="window") as pbar:
+            for i, t in enumerate(opt_ts):
+                t = t // self.window * self.window
+                start = s
+                end = t + self.t_pad2 + self.window
+                audio_slice = audio_pad[start:end]
+                pitch_slice = pitch[:, start // self.window:end // self.window] if if_f0 else None
+                pitchf_slice = pitchf[:, start // self.window:end // self.window] if if_f0 else None
+                audio_opt.append(self.vc(model, net_g, sid, audio_slice, pitch_slice, pitchf_slice, times, index, big_npy, index_rate, version, protect)[self.t_pad_tgt : -self.t_pad_tgt])
+                s = t
+                pbar.update(1)
+                pbar.refresh()
+        
             s = t
         if if_f0 == 1:
             audio_opt.append(
