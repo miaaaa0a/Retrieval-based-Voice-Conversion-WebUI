@@ -28,6 +28,7 @@ f0_min = 50
 f0_max = 1100
 protect = 33
 volRatio = 25
+indexRate = 20
 
 class Window(QMainWindow, Ui_MainWindow):
     def __init__(self, parent=None):
@@ -50,6 +51,11 @@ class Window(QMainWindow, Ui_MainWindow):
                 self.volRatioVal, self.volRatioSlider.value()
             )
         )
+        self.indexRateSlider.valueChanged.connect(
+            lambda: self.divide(
+                self.indexRatioVal, self.indexRateSlider.value()
+            )
+        )
 
         # set min/max freq
         self.minFreqSlider.setValue(f0_min)
@@ -62,6 +68,9 @@ class Window(QMainWindow, Ui_MainWindow):
 
         # set vol ratio
         self.volRatioSlider.setValue(volRatio)
+
+        # set index
+        self.indexRateSlider.setValue(indexRate)
 
         # combo menus
         # populate f0 choices

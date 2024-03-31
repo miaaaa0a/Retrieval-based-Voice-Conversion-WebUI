@@ -63,13 +63,13 @@ class Ui_MainWindow(object):
         self.label_3 = QtWidgets.QLabel(parent=self.groupBox)
         self.label_3.setGeometry(QtCore.QRect(10, 120, 571, 16))
         self.label_3.setObjectName("label_3")
-        self.indexRateSpinBox = QtWidgets.QSpinBox(parent=self.groupBox)
-        self.indexRateSpinBox.setGeometry(QtCore.QRect(530, 140, 51, 22))
-        self.indexRateSpinBox.setMaximum(100)
-        self.indexRateSpinBox.setObjectName("indexRateSpinBox")
         self.inferAudioBtn = QtWidgets.QToolButton(parent=self.groupBox)
         self.inferAudioBtn.setGeometry(QtCore.QRect(550, 40, 31, 19))
         self.inferAudioBtn.setObjectName("inferAudioBtn")
+        self.indexRatioVal = QtWidgets.QLineEdit(parent=self.groupBox)
+        self.indexRatioVal.setGeometry(QtCore.QRect(530, 140, 51, 20))
+        self.indexRatioVal.setReadOnly(True)
+        self.indexRatioVal.setObjectName("indexRatioVal")
         self.groupBox_2 = QtWidgets.QGroupBox(parent=self.tab)
         self.groupBox_2.setGeometry(QtCore.QRect(10, 190, 601, 341))
         self.groupBox_2.setObjectName("groupBox_2")
@@ -346,8 +346,6 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
         self.tabWidget.setCurrentIndex(0)
-        self.indexRateSlider.sliderMoved['int'].connect(self.indexRateSpinBox.setValue) # type: ignore
-        self.indexRateSpinBox.valueChanged['int'].connect(self.indexRateSlider.setValue) # type: ignore
         self.minFreqSlider.sliderMoved['int'].connect(self.minFreqSpinBox.setValue) # type: ignore
         self.minFreqSpinBox.valueChanged['int'].connect(self.minFreqSlider.setValue) # type: ignore
         self.maxFreqSlider.sliderMoved['int'].connect(self.maxFreqSpinBox.setValue) # type: ignore
